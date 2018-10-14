@@ -16,9 +16,9 @@ pub fn start_http_server(ctx: Arc<Context>) {
     // This is our socket address...
     let addr = ([127, 0, 0, 1], 3000).into();
 
-    let factory = HttpService::new(&ctx);
+    let service = HttpService::new(&ctx);
     let server = Server::bind(&addr)
-        .serve(factory)
+        .serve(service)
         .map_err(|e| eprintln!("server error: {}", e));
 
     // Run this server for... forever!
