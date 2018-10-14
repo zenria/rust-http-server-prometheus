@@ -1,4 +1,5 @@
 extern crate prometheus;
+mod dummy_worker;
 mod httpserver;
 mod promhelpers;
 
@@ -10,9 +11,11 @@ pub struct Context {
 }
 
 fn main() {
-    let ctx = Context {
+    let ctx = Arc::new(Context {
         metric_registry: Registry::new(),
-    };
+    });
 
-    httpserver::start_http_server(Arc::new(ctx));
+    dummy_worker::launch_worker(Arc::clone(&ctx));
+
+    httpserver::start_http_server(ctx);
 }
