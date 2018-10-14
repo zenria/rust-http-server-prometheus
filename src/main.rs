@@ -7,25 +7,18 @@ mod promhelpers;
 
 use prometheus::Registry;
 
-pub struct Context {
-    metric_registry: &'static Registry,
-}
-
-impl httpserver::MetricsRegistryProvider for CTX {
+impl httpserver::MetricsRegistryProvider for REGISTRY {
     fn get_metrics_registry(&'static self) -> &Registry {
-        self.metric_registry
+        self
     }
 }
 
 lazy_static! {
     static ref REGISTRY: Registry = Registry::new();
-    static ref CTX: Context = Context {
-        metric_registry: &REGISTRY,
-    };
 }
 
 fn main() {
-    dummy_worker::launch_workers(CTX.metric_registry);
+    dummy_worker::launch_workers(&REGISTRY);
 
-    httpserver::start_http_server(&CTX);
+    httpserver::start_http_server(&REGISTRY);
 }
