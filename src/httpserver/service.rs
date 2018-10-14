@@ -82,7 +82,7 @@ impl HttpService {
             (&Method::GET, "/") | (&Method::GET, "/index.html") => {
                 Response::new(Body::from(PHRASE))
             }
-            (&Method::GET, "/metrics") | (&Method::GET, "/index.html") => {
+            (&Method::GET, "/metrics") => {
                 self.metrics.slash_metrics_count.inc();
 
                 Response::new(Body::from(self.produce_metrics()))
