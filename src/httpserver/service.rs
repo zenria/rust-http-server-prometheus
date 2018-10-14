@@ -4,10 +4,10 @@ use super::hyper::{Body, Method, Request, Response, StatusCode};
 use super::futures::future;
 use super::never::Never;
 
+use super::MetricsRegistryProvider;
 use prometheus::{Counter, Encoder, TextEncoder};
 use promhelpers;
 use std::sync::Arc;
-use Context;
 
 struct Metrics {
     request_count: Counter,
@@ -16,22 +16,26 @@ struct Metrics {
 }
 
 pub struct HttpService {
-    ctx: &'static Context,
+    ctx: &'static (MetricsRegistryProvider + Send + Sync),
     metrics: Arc<Metrics>,
 }
 
 impl HttpService {
-    pub fn new(ctx: &'static Context) -> HttpService {
+    pub fn new(ctx: &'static (MetricsRegistryProvider + Send + Sync)) -> HttpService {
         // Create a Counter.
         let metrics = Metrics {
             request_count: promhelpers::new_counter(
-                ctx,
+                ctx.get_metrics_registry(),
                 "request_count",
                 "Served http requests count",
             ),
-            error_count: promhelpers::new_counter(ctx, "error_count", "HTTP errors count"),
+            error_count: promhelpers::new_counter(
+                ctx.get_metrics_registry(),
+                "error_count",
+                "HTTP errors count",
+            ),
             slash_metrics_count: promhelpers::new_counter(
-                ctx,
+                ctx.get_metrics_registry(),
                 "slash_metrics_count",
                 "/metrics request count",
             ),
@@ -104,7 +108,7 @@ impl HttpService {
     }
 
     fn produce_metrics(&self) -> String {
-        let registry = &self.ctx.metric_registry;
+        let registry = &self.ctx.get_metrics_registry();
         // Gather the metrics.
         let mut buffer = vec![];
         let encoder = TextEncoder::new();

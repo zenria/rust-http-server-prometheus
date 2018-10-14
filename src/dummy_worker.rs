@@ -1,10 +1,10 @@
+use prometheus::Registry;
 use promhelpers;
 use std::thread;
 use std::time::Duration;
-use Context;
 
-pub fn launch_workers(ctx: &Context) {
-    let counter = promhelpers::new_counter(&ctx, "dummy_ops_count", "Dummy operations count");
+pub fn launch_workers(registry: &Registry) {
+    let counter = promhelpers::new_counter(&registry, "dummy_ops_count", "Dummy operations count");
     for _i in 1..20 {
         let cloned_counter = counter.clone();
         thread::spawn(move || loop {

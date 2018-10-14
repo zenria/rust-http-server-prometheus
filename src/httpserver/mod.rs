@@ -8,13 +8,17 @@ use self::futures::Future;
 use self::hyper::Server;
 use self::service::HttpService;
 
-use super::Context;
+use prometheus::Registry;
 
-pub fn start_http_server(ctx: &'static Context) {
+pub trait MetricsRegistryProvider {
+    fn get_metrics_registry(&'static self) -> &Registry;
+}
+
+pub fn start_http_server(ctx: &'static (MetricsRegistryProvider + Sync + Send)) {
     // This is our socket address...
     let addr = ([127, 0, 0, 1], 3000).into();
 
-    let service = HttpService::new(&ctx);
+    let service = HttpService::new(ctx);
     let server = Server::bind(&addr)
         .serve(service)
         .map_err(|e| eprintln!("server error: {}", e));
