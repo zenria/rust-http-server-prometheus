@@ -63,10 +63,16 @@ impl NewService for HttpService {
     type InitError = Never;
 
     fn new_service(&self) -> Self::Future {
-        future::ok(HttpService {
+        future::ok(self.clone())
+    }
+}
+
+impl Clone for HttpService {
+    fn clone(&self) -> HttpService {
+        HttpService {
             ctx: Arc::clone(&self.ctx),
             metrics: Arc::clone(&self.metrics),
-        })
+        }
     }
 }
 
