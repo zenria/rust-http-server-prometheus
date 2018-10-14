@@ -4,7 +4,8 @@ use super::hyper::{Body, Method, Request, Response, StatusCode};
 use super::futures::future;
 use super::never::Never;
 
-use prometheus::{Counter, Encoder, Opts, TextEncoder};
+use prometheus::{Counter, Encoder, TextEncoder};
+use promhelpers;
 use std::sync::Arc;
 use Context;
 
@@ -20,23 +21,16 @@ pub struct HttpService {
 }
 
 impl HttpService {
-    fn new_counter(ctx: &Arc<Context>, counter_name: &str, counter_help: &str) -> Counter {
-        let counter = Counter::with_opts(Opts::new(counter_name, counter_help)).unwrap();
-        ctx.metric_registry
-            .register(Box::new(counter.clone()))
-            .unwrap();
-        counter
-    }
     pub fn new(ctx: &Arc<Context>) -> HttpService {
         // Create a Counter.
         let metrics = Metrics {
-            request_count: HttpService::new_counter(
+            request_count: promhelpers::new_counter(
                 ctx,
                 "request_count",
                 "Served http requests count",
             ),
-            error_count: HttpService::new_counter(ctx, "error_count", "HTTP errors count"),
-            slash_metrics_count: HttpService::new_counter(
+            error_count: promhelpers::new_counter(ctx, "error_count", "HTTP errors count"),
+            slash_metrics_count: promhelpers::new_counter(
                 ctx,
                 "slash_metrics_count",
                 "/metrics request count",
@@ -85,13 +79,16 @@ impl HttpService {
         self.metrics.request_count.inc();
 
         match (req.method(), req.uri().path()) {
-            (&Method::GET, "/") | (&Method::GET, "/index.html") => {
-                Response::new(Body::from(PHRASE))
-            }
+            (&Method::GET, "/") | (&Method::GET, "/index.html") => Response::builder()
+                .header("Content-Type", "text/plain")
+                .body(Body::from(PHRASE))
+                .unwrap(),
             (&Method::GET, "/metrics") => {
                 self.metrics.slash_metrics_count.inc();
-
-                Response::new(Body::from(self.produce_metrics()))
+                Response::builder()
+                    .header("Content-Type", "text/plain")
+                    .body(Body::from(self.produce_metrics()))
+                    .unwrap()
             }
             _ => {
                 self.metrics.error_count.inc();
@@ -99,6 +96,7 @@ impl HttpService {
                 let body = Body::from(NOT_FOUND);
                 Response::builder()
                     .status(StatusCode::NOT_FOUND)
+                    .header("Content-Type", "text/plain")
                     .body(body)
                     .unwrap()
             }

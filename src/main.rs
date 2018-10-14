@@ -1,5 +1,7 @@
 extern crate prometheus;
 mod httpserver;
+mod promhelpers;
+
 use prometheus::Registry;
 use std::sync::Arc;
 
