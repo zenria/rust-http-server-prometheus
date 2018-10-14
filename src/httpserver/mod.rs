@@ -8,11 +8,9 @@ use self::futures::Future;
 use self::hyper::Server;
 use self::service::HttpService;
 
-use std::sync::Arc;
-
 use super::Context;
 
-pub fn start_http_server(ctx: Arc<Context>) {
+pub fn start_http_server(ctx: &'static Context) {
     // This is our socket address...
     let addr = ([127, 0, 0, 1], 3000).into();
 

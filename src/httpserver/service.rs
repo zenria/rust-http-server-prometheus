@@ -16,12 +16,12 @@ struct Metrics {
 }
 
 pub struct HttpService {
-    ctx: Arc<Context>,
+    ctx: &'static Context,
     metrics: Arc<Metrics>,
 }
 
 impl HttpService {
-    pub fn new(ctx: &Arc<Context>) -> HttpService {
+    pub fn new(ctx: &'static Context) -> HttpService {
         // Create a Counter.
         let metrics = Metrics {
             request_count: promhelpers::new_counter(
@@ -37,7 +37,7 @@ impl HttpService {
             ),
         };
         HttpService {
-            ctx: Arc::clone(ctx),
+            ctx: ctx,
             metrics: Arc::new(metrics),
         }
     }
@@ -64,7 +64,7 @@ impl NewService for HttpService {
 impl Clone for HttpService {
     fn clone(&self) -> HttpService {
         HttpService {
-            ctx: Arc::clone(&self.ctx),
+            ctx: self.ctx,
             metrics: Arc::clone(&self.metrics),
         }
     }
