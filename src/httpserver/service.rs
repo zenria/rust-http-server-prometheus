@@ -8,7 +8,7 @@ use prometheus::{Counter, Encoder, Opts, TextEncoder};
 use std::sync::Arc;
 use Context;
 
-pub struct Metrics {
+struct Metrics {
     request_count: Counter,
     error_count: Counter,
     slash_metrics_count: Counter,
@@ -51,7 +51,7 @@ impl HttpService {
 
 /**
  * Be simple: the service also impl NewService
- * 
+ *
  */
 impl NewService for HttpService {
     type ResBody = Body;
