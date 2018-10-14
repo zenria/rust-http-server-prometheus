@@ -15,7 +15,7 @@ fn main() {
         metric_registry: Registry::new(),
     });
 
-    dummy_worker::launch_workers(Arc::clone(&ctx));
+    dummy_worker::launch_workers(&ctx);
 
     httpserver::start_http_server(ctx);
 }
