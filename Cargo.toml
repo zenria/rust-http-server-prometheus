@@ -1,0 +1,9 @@
+[package]
+name = "prometheus-test"
+version = "0.1.0"
+authors = [" <>"]
+
+[dependencies]
+prometheus = "0.4"
+hyper = "0.12"
+futures = "0.1"
