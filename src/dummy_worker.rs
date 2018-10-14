@@ -4,7 +4,7 @@ use std::thread;
 use std::time::Duration;
 use Context;
 
-pub fn launch_worker(ctx: Arc<Context>) {
+pub fn launch_workers(ctx: Arc<Context>) {
     let counter = promhelpers::new_counter(&ctx, "dummy_ops_count", "Dummy operations count");
     for _i in 1..20 {
         let cloned_counter = counter.clone();
