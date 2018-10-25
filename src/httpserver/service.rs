@@ -1,7 +1,8 @@
-use super::hyper::service::{NewService, Service};
-use super::hyper::{Body, Method, Request, Response, StatusCode};
+use hyper::service::{NewService, Service};
+use hyper::{Body, Method, Request, Response, StatusCode};
 
-use super::futures::future;
+use futures::future;
+use futures::IntoFuture;
 use super::never::Never;
 
 use super::MetricsRegistryProvider;
@@ -52,15 +53,25 @@ impl HttpService {
  *
  */
 impl NewService for HttpService {
-    type ResBody = Body;
     type ReqBody = Body;
-    type Future = future::FutureResult<HttpService, Never>;
+    type ResBody = Body;
     type Error = Never;
-
     type Service = HttpService;
+
+    type Future = future::FutureResult<HttpService, Never>;
     type InitError = Never;
 
     fn new_service(&self) -> Self::Future {
+        self.clone().into_future()
+    }
+}
+
+impl IntoFuture for HttpService {
+    type Future = future::FutureResult<HttpService, Never>;
+    type Item = HttpService;
+    type Error = Never;
+
+    fn into_future(self) -> <Self as IntoFuture>::Future {
         future::ok(self.clone())
     }
 }
@@ -108,22 +119,22 @@ impl HttpService {
     }
 
     fn produce_metrics(&self) -> String {
-        let registry = &self.ctx.get_metrics_registry();
+        let registry = self.ctx.get_metrics_registry();
         // Gather the metrics.
         let mut buffer = vec![];
         let encoder = TextEncoder::new();
-        let metric_familys = registry.gather();
-        encoder.encode(&metric_familys, &mut buffer).unwrap();
+        let metric_families = registry.gather();
+        encoder.encode(&metric_families, &mut buffer).unwrap();
 
         String::from_utf8(buffer).unwrap()
     }
 }
 
 impl Service for HttpService {
-    type ResBody = Body;
     type ReqBody = Body;
-    type Future = future::FutureResult<Response<Body>, Never>;
+    type ResBody = Body;
     type Error = Never;
+    type Future = future::FutureResult<Response<Body>, Never>;
 
     fn call(&mut self, req: Request<Self::ReqBody>) -> Self::Future {
         future::ok(self.serve(req))

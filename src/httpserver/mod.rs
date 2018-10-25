@@ -1,11 +1,10 @@
-extern crate futures;
-extern crate hyper;
 
 mod never;
 mod service;
 
-use self::futures::Future;
-use self::hyper::Server;
+use futures::Future;
+use hyper::Server;
+use hyper::rt::run;
 use self::service::HttpService;
 
 use prometheus::Registry;
@@ -24,5 +23,5 @@ pub fn start_http_server(ctx: &'static (MetricsRegistryProvider + Sync + Send)) 
         .map_err(|e| eprintln!("server error: {}", e));
 
     // Run this server for... forever!
-    hyper::rt::run(server);
+    run(server);
 }

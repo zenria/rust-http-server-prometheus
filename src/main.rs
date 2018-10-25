@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate lazy_static;
 extern crate prometheus;
+extern crate futures;
+extern crate hyper;
+
 mod dummy_worker;
 mod httpserver;
 mod promhelpers;
