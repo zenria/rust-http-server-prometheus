@@ -72,7 +72,7 @@ impl IntoFuture for HttpService {
     type Error = Never;
 
     fn into_future(self) -> <Self as IntoFuture>::Future {
-        future::ok(self.clone())
+        future::ok(self)
     }
 }
 
