@@ -7,4 +7,3 @@ authors = [" <>"]
 prometheus = "0.4"
 hyper = "0.12"
 futures = "0.1"
-lazy_static = "1.1.0"

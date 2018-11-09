@@ -5,8 +5,7 @@ use futures::future;
 use futures::IntoFuture;
 use super::never::Never;
 
-use super::MetricsRegistryProvider;
-use prometheus::{Counter, Encoder, TextEncoder};
+use prometheus::{Counter, Encoder, TextEncoder,gather};
 use promhelpers;
 use std::sync::Arc;
 
@@ -17,32 +16,27 @@ struct Metrics {
 }
 
 pub struct HttpService {
-    ctx: &'static (MetricsRegistryProvider + Send + Sync),
     metrics: Arc<Metrics>,
 }
 
 impl HttpService {
-    pub fn new(ctx: &'static (MetricsRegistryProvider + Send + Sync)) -> HttpService {
+    pub fn new() -> HttpService {
         // Create a Counter.
         let metrics = Metrics {
             request_count: promhelpers::new_counter(
-                ctx.get_metrics_registry(),
                 "request_count",
                 "Served http requests count",
             ),
             error_count: promhelpers::new_counter(
-                ctx.get_metrics_registry(),
                 "error_count",
                 "HTTP errors count",
             ),
             slash_metrics_count: promhelpers::new_counter(
-                ctx.get_metrics_registry(),
                 "slash_metrics_count",
                 "/metrics request count",
             ),
         };
         HttpService {
-            ctx: ctx,
             metrics: Arc::new(metrics),
         }
     }
@@ -79,7 +73,6 @@ impl IntoFuture for HttpService {
 impl Clone for HttpService {
     fn clone(&self) -> HttpService {
         HttpService {
-            ctx: self.ctx,
             metrics: Arc::clone(&self.metrics),
         }
     }
@@ -119,11 +112,10 @@ impl HttpService {
     }
 
     fn produce_metrics(&self) -> String {
-        let registry = self.ctx.get_metrics_registry();
         // Gather the metrics.
         let mut buffer = vec![];
         let encoder = TextEncoder::new();
-        let metric_families = registry.gather();
+        let metric_families = gather();
         encoder.encode(&metric_families, &mut buffer).unwrap();
 
         String::from_utf8(buffer).unwrap()
